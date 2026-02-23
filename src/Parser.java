@@ -23,8 +23,32 @@ class Parser {
   }
 
   private Expr expression() {
-    return equality();
+    return comma();
   }
+  private Expr comma() {
+    Expr expr = conditional();
+
+    while (match(COMMA)) {
+        Token operator = previous();
+        Expr right = conditional();
+        expr = new Expr.Comma(expr, operator, right);
+    }
+    return expr;
+  }
+
+  private Expr conditional() {
+    Expr expr = equality();
+
+    if (match(QUESTION)) {
+        Expr thenBranch = expression();
+        consume(COLON, "Expect ':' after then branch of conditional expression.");
+        Expr elseBranch = conditional();
+
+        expr = new Expr.Conditional(expr, thenBranch, elseBranch);
+    }
+
+    return expr;
+}
 
   private Expr equality() {
     Expr expr = comparison();
@@ -85,6 +109,18 @@ class Parser {
   }
 
   private Expr primary() {
+
+    if (match(BANG_EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL,
+              LESS, LESS_EQUAL,PLUS, MINUS, STAR, SLASH)) {
+
+        Token operator = previous();
+        error(operator, "left hand operand is missing");
+
+        Expr right = equality();
+
+        return right; 
+    }
+
     if (match(FALSE)) return new Expr.Literal(false);
     if (match(TRUE)) return new Expr.Literal(true);
     if (match(NIL)) return new Expr.Literal(null);
