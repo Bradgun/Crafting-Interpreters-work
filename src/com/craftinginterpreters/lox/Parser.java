@@ -1,8 +1,6 @@
 package com.craftinginterpreters.lox;
-
-import java.util.List;
-
 import static com.craftinginterpreters.lox.TokenType.*;
+import java.util.List;
 
 class Parser {
   private static class ParseError extends RuntimeException {}
@@ -25,14 +23,16 @@ class Parser {
   private Expr expression() {
     return comma();
   }
+
   private Expr comma() {
     Expr expr = conditional();
 
     while (match(COMMA)) {
-        Token operator = previous();
-        Expr right = conditional();
-        expr = new Expr.Comma(expr, operator, right);
+      Token operator = previous();
+      Expr right = conditional();
+      expr = new Expr.Binary(expr, operator, right);
     }
+
     return expr;
   }
 
@@ -40,17 +40,21 @@ class Parser {
     Expr expr = equality();
 
     if (match(QUESTION)) {
-        Expr thenBranch = expression();
-        consume(COLON, "Expect ':' after then branch of conditional expression.");
-        Expr elseBranch = conditional();
-
-        expr = new Expr.Conditional(expr, thenBranch, elseBranch);
+      Expr thenBranch = expression();
+      consume(COLON, "Expect ':' after then branch of conditional expression.");
+      Expr elseBranch = conditional();
+      expr = new Expr.Ternary(expr, thenBranch, elseBranch);
     }
 
     return expr;
-}
+  }
 
   private Expr equality() {
+    if (match(BANG_EQUAL, EQUAL_EQUAL)) {
+      error(previous(), "Expect left-hand operand.");
+      comparison();
+    }
+
     Expr expr = comparison();
 
     while (match(BANG_EQUAL, EQUAL_EQUAL)) {
@@ -63,6 +67,11 @@ class Parser {
   }
 
   private Expr comparison() {
+    if (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
+      error(previous(), "Expect left-hand operand.");
+      term();
+    }
+
     Expr expr = term();
 
     while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)) {
@@ -75,6 +84,11 @@ class Parser {
   }
 
   private Expr term() {
+    if (match(PLUS)) {
+      error(previous(), "Expect left-hand operand.");
+      factor();
+    }
+
     Expr expr = factor();
 
     while (match(MINUS, PLUS)) {
@@ -87,6 +101,11 @@ class Parser {
   }
 
   private Expr factor() {
+    if (match(SLASH, STAR)) {
+      error(previous(), "Expect left-hand operand.");
+      unary();
+    }
+
     Expr expr = unary();
 
     while (match(SLASH, STAR)) {
@@ -109,18 +128,6 @@ class Parser {
   }
 
   private Expr primary() {
-
-    if (match(BANG_EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL,
-              LESS, LESS_EQUAL,PLUS, MINUS, STAR, SLASH)) {
-
-        Token operator = previous();
-        error(operator, "left hand operand is missing");
-
-        Expr right = equality();
-
-        return right; 
-    }
-
     if (match(FALSE)) return new Expr.Literal(false);
     if (match(TRUE)) return new Expr.Literal(true);
     if (match(NIL)) return new Expr.Literal(null);
@@ -151,6 +158,7 @@ class Parser {
 
   private Token consume(TokenType type, String message) {
     if (check(type)) return advance();
+
     throw error(peek(), message);
   }
 
