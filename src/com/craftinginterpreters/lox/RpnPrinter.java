@@ -36,4 +36,15 @@ public String visitTernaryExpr(Expr.Ternary expr) {
          expr.thenBranch.accept(this) + " " +
          expr.elseBranch.accept(this) + " ?:";
 }
+
+@Override
+public String visitVariableExpr(Expr.Variable expr) {
+  return expr.name.lexeme;
+}
+
+@Override
+public String visitAssignExpr(Expr.Assign expr) {
+  return print(expr.value) + " " + expr.name.lexeme + " =";
+}
+
 }

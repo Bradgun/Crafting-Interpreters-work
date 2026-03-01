@@ -39,34 +39,49 @@ public class Lox {
 
     for (;;) { 
       System.out.print("> ");
-      String line = reader.readLine();
-      if (line == null) break;
-      run(line);
+    String line = reader.readLine();
+    if (line == null) break;
+
+    run(line);
+
+    if (hadError) {
       hadError = false;
+
+      Scanner scanner = new Scanner(line);
+      List<Token> tokens = scanner.scanTokens();
+      Parser parser = new Parser(tokens);
+      Expr expression = parser.parseExpression();
+
+      if (!hadError && expression != null) {
+        interpreter.interpret(expression);
+      }
     }
+
+  hadError = false;
   }
+}
 
   private static void run(String source) {
     Scanner scanner = new Scanner(source);
     List<Token> tokens = scanner.scanTokens();
 
     Parser parser = new Parser(tokens);
-    Expr expression = parser.parse();
+    List<Stmt> statements = parser.parse();
 
     // Stop if there was a syntax error.
     if (hadError) return;
 
-interpreter.interpret(expression);
-}
+    interpreter.interpret(statements);
+  }
 
   static void error(int line, String message) {
     report(line, "", message);
   }
 
   static void runtimeError(RuntimeError error) {
-  System.err.println(error.getMessage() +
-      "\n[line " + error.token.line + "]");
-  hadRuntimeError = true;
+    System.err.println(error.getMessage() +
+        "\n[line " + error.token.line + "]");
+    hadRuntimeError = true;
   }
 
   static void error(Token token, String message) {
