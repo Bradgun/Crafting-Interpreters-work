@@ -50,9 +50,14 @@ public String visitAssignExpr(Expr.Assign expr) {
     return builder.toString();
   }
 
-    @Override
-  public String visitTernaryExpr(Expr.Ternary expr) {
-    return parenthesize("?:", expr.condition, expr.thenBranch, expr.elseBranch);
+@Override
+public String visitLogicalExpr(Expr.Logical expr) {
+  return parenthesize(expr.operator.lexeme, expr.left, expr.right);
+}
+
+@Override
+public String visitTernaryExpr(Expr.Ternary expr) {
+  return parenthesize("?:", expr.condition, expr.thenBranch, expr.elseBranch);
   }
 
   public static void main(String[] args) {
