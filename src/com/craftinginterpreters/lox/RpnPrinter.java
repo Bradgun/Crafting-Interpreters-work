@@ -54,4 +54,9 @@ public String visitLogicalExpr(Expr.Logical expr) {
   return print(expr.value) + " " + expr.name.lexeme + " =";
 }
 
+@Override
+public String visitCallExpr(Expr.Call expr) {
+  return null;
+}
+
 }

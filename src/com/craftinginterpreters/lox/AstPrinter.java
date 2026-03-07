@@ -60,6 +60,11 @@ public String visitTernaryExpr(Expr.Ternary expr) {
   return parenthesize("?:", expr.condition, expr.thenBranch, expr.elseBranch);
   }
 
+@Override
+public String visitCallExpr(Expr.Call expr) {
+  return null;
+}
+
   public static void main(String[] args) {
     Expr expression = new Expr.Binary(
         new Expr.Unary(
