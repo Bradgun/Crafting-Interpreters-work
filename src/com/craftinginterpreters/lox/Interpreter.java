@@ -159,6 +159,11 @@ class Interpreter implements Expr.Visitor<Object>,
     return evaluate(expr.expression);
   }
 
+  @Override
+public Object visitFunctionExpr(Expr.Function expr) {
+  return new LoxFunction(expr, environment);
+}
+
   private Object evaluate(Expr expr) {
     return expr.accept(this);
   }

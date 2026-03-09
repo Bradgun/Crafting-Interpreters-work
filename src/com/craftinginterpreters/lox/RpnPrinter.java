@@ -59,4 +59,9 @@ public String visitCallExpr(Expr.Call expr) {
   return null;
 }
 
+@Override
+public String visitFunctionExpr(Expr.Function expr) {
+  return null;
+}
+
 }

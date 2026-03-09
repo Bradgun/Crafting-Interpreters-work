@@ -76,4 +76,8 @@ public String visitCallExpr(Expr.Call expr) {
 
     System.out.println(new AstPrinter().print(expression));
   }
+@Override
+public String visitFunctionExpr(Expr.Function expr) {
+  return null;
+}
 }

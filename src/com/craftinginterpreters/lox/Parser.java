@@ -159,6 +159,29 @@ class Parser {
     return new Stmt.Function(name, parameters, body);
   }
 
+  private Expr functionExpression() {
+  consume(LEFT_PAREN, "Expect '(' after 'fun'.");
+
+  List<Token> parameters = new ArrayList<>();
+  if (!check(RIGHT_PAREN)) {
+    do {
+      if (parameters.size() >= 255) {
+        error(peek(), "Can't have more than 255 parameters.");
+      }
+
+      parameters.add(
+          consume(IDENTIFIER, "Expect parameter name."));
+    } while (match(COMMA));
+  }
+
+  consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+  consume(LEFT_BRACE, "Expect '{' before function body.");
+  List<Stmt> body = block();
+
+  return new Expr.Function(parameters, body);
+}
+
   private Stmt varDeclaration() {
     Token name = consume(IDENTIFIER, "Expect variable name.");
 
@@ -372,6 +395,8 @@ class Parser {
   }
 
   private Expr primary() {
+    if (match(FUN)) return functionExpression();
+
     if (match(FALSE)) return new Expr.Literal(false);
     if (match(TRUE)) return new Expr.Literal(true);
     if (match(NIL)) return new Expr.Literal(null);
