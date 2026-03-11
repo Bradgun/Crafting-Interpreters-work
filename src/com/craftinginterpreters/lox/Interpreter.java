@@ -9,8 +9,7 @@ class Interpreter implements Expr.Visitor<Object>,
                              Stmt.Visitor<Void> {
   final Environment globals = new Environment();
   private Environment environment = globals;
-  private final Map<Expr, Integer> locals = new HashMap<>();
-
+  private final Map<Expr, int[]> locals = new HashMap<>();
   Interpreter() {
     globals.define("clock", new LoxCallable() {
       @Override
@@ -127,16 +126,16 @@ class Interpreter implements Expr.Visitor<Object>,
     stmt.accept(this);
   }
 
-  void resolve(Expr expr, int depth) {
-    locals.put(expr, depth);
+  void resolve(Expr expr, int depth, int index) {
+    locals.put(expr, new int[] {depth, index});
   }
 
   @Override
   public Object visitAssignExpr(Expr.Assign expr) {
     Object value = evaluate(expr.value);
-    Integer distance = locals.get(expr);
-    if (distance != null) {
-      environment.assignAt(distance, expr.name, value);
+    int[] resolved = locals.get(expr);
+    if (resolved != null) {
+      environment.assignAt(resolved[0], expr.name, value);
     } else {
       globals.assign(expr.name, value);
     }
@@ -149,9 +148,9 @@ class Interpreter implements Expr.Visitor<Object>,
   }
 
   private Object lookUpVariable(Token name, Expr expr) {
-    Integer distance = locals.get(expr);
-    if (distance != null) {
-      return environment.getAt(distance, name.lexeme);
+    int[] resolved = locals.get(expr);
+    if (resolved != null) {
+      return environment.getAt(resolved[0], resolved[1]);
     } else {
       return globals.get(name);
     }
