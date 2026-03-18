@@ -19,6 +19,7 @@ class LoxFunction implements LoxCallable {
     this.expression = expression;
     this.declaration = null;
     this.closure = closure;
+    this.isInitializer = false;
   }
 
   LoxFunction bind(LoxInstance instance) {
