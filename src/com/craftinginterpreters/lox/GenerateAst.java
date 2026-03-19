@@ -32,8 +32,9 @@ public class GenerateAst {
 
     defineAst(outputDir, "Stmt", Arrays.asList(
       "Block      : List<Stmt> statements",
-      "Class      : Token name, Expr.Variable superclass," +
-                  " List<Stmt.Function> methods",
+      "Class      : Token name, Expr superclass," +
+            " List<Expr> traits," +
+            " List<Stmt.Function> methods",
       "Expression : Expr expression",
       "Function   : Token name, List<Token> params," +
                   " List<Stmt> body",
@@ -41,6 +42,8 @@ public class GenerateAst {
                   " Stmt elseBranch",
       "Print      : Expr expression",
       "Return     : Token keyword, Expr value",
+      "Trait      : Token name, List<Expr> traits," +
+                  " List<Stmt.Function> methods",
       "Var        : Token name, Expr initializer",
       "While      : Expr condition, Stmt body"
     ));

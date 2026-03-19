@@ -1,0 +1,10 @@
+trait A {
+  a() {
+    print "a";
+  }
+}
+
+class B with A {}
+
+var b = B();
+b.a();

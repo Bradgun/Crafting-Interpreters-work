@@ -22,11 +22,11 @@ class LoxFunction implements LoxCallable {
     this.isInitializer = false;
   }
 
-  LoxFunction bind(LoxInstance instance) {
+  LoxFunction bind(LoxInstance instance, LoxFunction inner) {
     Environment environment = new Environment(closure);
     environment.define("this", instance);
-    return new LoxFunction(declaration, environment,
-                           isInitializer);
+    environment.define("inner", inner);
+    return new LoxFunction(declaration, environment, isInitializer);
   }
 
   @Override
@@ -56,10 +56,10 @@ class LoxFunction implements LoxCallable {
   }
   
   @Override
-public int arity() {
-  if (declaration != null) return declaration.params.size();
-  return expression.params.size();
-}
+  public int arity() {
+    if (declaration != null) return declaration.params.size();
+    return expression.params.size();
+  }
 
   @Override
   public String toString() {

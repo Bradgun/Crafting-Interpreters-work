@@ -24,7 +24,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   private enum ClassType {
     NONE,
     CLASS,
-    SUBCLASS
+    SUBCLASS,
+    TRAIT
   }
 
   private ClassType currentClass = ClassType.NONE;
@@ -64,8 +65,8 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     define(stmt.name);
 
     if (stmt.superclass != null &&
-        stmt.name.lexeme.equals(stmt.superclass.name.lexeme)) {
-      Lox.error(stmt.superclass.name,
+        stmt.name.lexeme.equals(((Expr.Variable) stmt.superclass).name)) {
+      Lox.error(((Expr.Variable) stmt.superclass).name,
           "A class can't inherit from itself.");
     }
 
@@ -80,6 +81,11 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     beginScope();
+
+    for (Expr trait : stmt.traits) {
+      resolve(trait);
+    }
+    
     scopes.peek().put("this", true);
 
     for (Stmt.Function method : stmt.methods) {
@@ -95,6 +101,32 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     if (stmt.superclass != null) endScope();
     
+    currentClass = enclosingClass;
+    return null;
+  }
+
+  @Override
+  public Void visitTraitStmt(Stmt.Trait stmt) {
+    declare(stmt.name);
+    define(stmt.name);
+    ClassType enclosingClass = currentClass;
+    currentClass = ClassType.TRAIT;
+
+    for (Expr trait : stmt.traits) {
+      resolve(trait);
+    }
+
+    beginScope();
+    scopes.peek().put("this", true);
+    scopes.peek().put("inner", true);
+
+    for (Stmt.Function method : stmt.methods) {
+      FunctionType declaration = FunctionType.METHOD;
+      resolveFunction(method, declaration);
+    }
+
+    endScope();
+
     currentClass = enclosingClass;
     return null;
   }
@@ -255,6 +287,9 @@ public Void visitFunctionExpr(Expr.Function expr) {
     if (currentClass == ClassType.NONE) {
       Lox.error(expr.keyword,
           "Can't use 'super' outside of a class.");
+    } else if (currentClass == ClassType.TRAIT) { 
+    Lox.error(expr.keyword,                     
+        "Can't use 'super' in a trait.");
     } else if (currentClass != ClassType.SUBCLASS) {
       Lox.error(expr.keyword,
           "Can't use 'super' in a class with no superclass.");
