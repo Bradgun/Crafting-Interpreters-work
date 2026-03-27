@@ -1,28 +1,18 @@
-#include <stdio.h>
-#include "dllist.h"
+#include "common.h"
+#include "chunk.h"
+#include "debug.h"
 
-int main(void) {
-    printf("Hello, world!\n");
+int main(int argc, const char* argv[]) {
+  Chunk chunk;
+  initChunk(&chunk);
 
-    Node* list = NULL;
+  int constant = addConstant(&chunk, 1.2);
+  writeChunk(&chunk, OP_CONSTANT, 123);
+  writeChunk(&chunk, constant, 123);
 
-    insert(&list, NULL, "five");
-    insert(&list, NULL, "one");
-    insert(&list, find(list, "one"), "two");
-    insert(&list, find(list, "two"), "three");
-    insert(&list, find(list, "three"), "four");
+  writeChunk(&chunk, OP_RETURN, 123);
 
-
-    dump(list);
-
-    printf("-- delete two --\n");
-    delete(&list, find(list, "two"));
-    dump(list);
-
-    printf("-- delete four --\n");
-    delete(&list, find(list, "four"));
-    dump(list);
-
-
-    return 0;
+  disassembleChunk(&chunk, "test chunk");
+  freeChunk(&chunk);
+  return 0;
 }
