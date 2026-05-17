@@ -43,9 +43,9 @@ static InterpretResult run() {
         runtimeError("Operands must be numbers."); \
         return INTERPRET_RUNTIME_ERROR; \
       } \
-      double b = AS_NUMBER(pop()); \
-      double a = AS_NUMBER(pop()); \
-      push(valueType(a op b)); \
+      vm.stackTop[-2] = valueType(AS_NUMBER(vm.stackTop[-2]) op \
+                                  AS_NUMBER(vm.stackTop[-1])); \
+      vm.stackTop--; \
     } while (false)
 
   for (;;) {
@@ -92,7 +92,8 @@ static InterpretResult run() {
           runtimeError("Operand must be a number.");
           return INTERPRET_RUNTIME_ERROR;
         }
-        push(NUMBER_VAL(-AS_NUMBER(pop())));
+        vm.stackTop[-1] =
+            NUMBER_VAL(-AS_NUMBER(vm.stackTop[-1]));
         break;
       case OP_RETURN: {
         printValue(pop());
