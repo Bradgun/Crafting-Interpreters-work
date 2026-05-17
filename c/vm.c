@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "common.h"
 #include "compiler.h"
@@ -68,7 +69,6 @@ static InterpretResult run() {
         push(constant);
         break;
       }
-
       case OP_NIL: push(NIL_VAL); break;
       case OP_TRUE: push(BOOL_VAL(true)); break;
       case OP_FALSE: push(BOOL_VAL(false)); break;
@@ -94,7 +94,6 @@ static InterpretResult run() {
         }
         push(NUMBER_VAL(-AS_NUMBER(pop())));
         break;
-
       case OP_RETURN: {
         printValue(pop());
         printf("\n");
@@ -109,13 +108,23 @@ static InterpretResult run() {
 }
 
 void initVM() {
+  vm.stackCapacity = 256;
+  vm.stack = malloc(sizeof(Value) * vm.stackCapacity);
   resetStack();
 }
 
 void freeVM() {
+  free(vm.stack);
 }
 
 void push(Value value) {
+  if (vm.stackTop - vm.stack >= vm.stackCapacity) {
+    int count = vm.stackTop - vm.stack;
+    vm.stackCapacity *= 2;
+    vm.stack = realloc(vm.stack, sizeof(Value) * vm.stackCapacity);
+    vm.stackTop = vm.stack + count;
+  }
+
   *vm.stackTop = value;
   vm.stackTop++;
 }
